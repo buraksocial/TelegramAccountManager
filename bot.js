@@ -1348,10 +1348,25 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
+const { createAvatarCache } = require('./lib/avatar-cache');
+const avatarCache = createAvatarCache({
+    directory: path.join(__dirname, 'uploads', 'avatar-cache'),
+    onError: () => console.warn('Avatar cache refresh failed; will retry later.')
+});
+
 // İstemcileri önbelleğe alıp Socket.io ile entegre ediyoruz
 const activeClients = {};
+const clientRequests = new Map();
 
 async function getCachedClient(indeks) {
+    if (activeClients[indeks]) return activeClients[indeks];
+    if (!clientRequests.has(indeks)) {
+        clientRequests.set(indeks, createCachedClient(indeks).finally(() => clientRequests.delete(indeks)));
+    }
+    return clientRequests.get(indeks);
+}
+
+async function createCachedClient(indeks) {
     if (activeClients[indeks]) {
         return activeClients[indeks];
     }
@@ -1976,22 +1991,30 @@ const PORT = process.env.PORT || 3000;
 // --- TELEGRAM WEB API ENDPOINTS ---
 
 app.get('/api/telegram/:indeks/avatar/:peerId', async (req, res) => {
+    const indeks = Number(req.params.indeks);
+    const peerId = req.params.peerId;
+    // Private: neither the CDN nor a shared proxy should cache account photos.
+    res.set('Cache-Control', 'private, max-age=3600');
     try {
-        const indeks = parseInt(req.params.indeks);
-        const peerId = req.params.peerId;
-        const client = await getCachedClient(indeks);
-        if(!client) return res.status(404).send('Not found');
-
-        const buffer = await client.downloadProfilePhoto(peerId);
-        if (buffer && buffer.length > 0) {
-            res.set('Content-Type', 'image/jpeg');
-            // Cache avatars for 1 hour to reduce network load
-            res.set('Cache-Control', 'public, max-age=3600');
-            return res.send(buffer);
+        const accounts = hesaplariGetir();
+        if (!Number.isInteger(indeks) || indeks < 0 || !accounts[indeks]) {
+            return res.status(404).set('Cache-Control', 'no-store').send('Not found');
         }
-        res.status(404).send('No avatar');
+        const account = accounts[indeks];
+        const identity = typeof account === 'string' ? account : (account.session || account.id);
+        if (!identity) return res.status(404).set('Cache-Control', 'no-store').send('Not found');
+        const buffer = await avatarCache.get(identity, peerId, async () => {
+            const client = await getCachedClient(indeks);
+            if (!client) throw new Error('Account unavailable');
+            return client.downloadProfilePhoto(peerId);
+        });
+        if (buffer && buffer.length > 0) {
+            // Express supplies ETag/conditional 304 responses for this buffer.
+            return res.type('image/jpeg').send(buffer);
+        }
+        res.status(404).set('Cache-Control', 'no-store').send('No avatar');
     } catch(e) {
-        res.status(404).send('No avatar');
+        res.status(404).set('Cache-Control', 'no-store').send('No avatar');
     }
 });
 

@@ -16,6 +16,7 @@ Telegram hesaplarını, hesap gruplarını ve zamanlı mesaj senaryolarını tek
 - Kaydırılabilir hesap listesi ve daraltılabilir senaryo listeleri
 - Türkçe ve English dil seçimi
 - Metin StringSession veya metin formatındaki `.session` dosyasını yükleme
+- Profil ve grup fotoğrafları için kalıcı sunucu cache’i
 
 > SQLite/Telethon formatındaki `.session` dosyaları doğrudan StringSession değildir ve panel tarafından sessizce dönüştürülmez. Bu dosyaları önce StringSession formatına dönüştürmeniz gerekir.
 
@@ -65,6 +66,8 @@ ln -s /var/lib/telegram-manager-data/dialoglar.json dialoglar.json
 ```
 
 Güncellemeden önce hesabınızı ve senaryo dosyalarınızı mutlaka yedekleyin. Plesk Node.js uygulamasında `.env` değerlerini Environment Variables bölümüne girip uygulamayı yeniden başlatın.
+
+Profil ve grup fotoğrafları `uploads/avatar-cache/` altında saklanır. İlk istekte Telegram’dan indirilir, sonraki isteklerde sunucudan hızlıca döner. Bu klasörü Git’e eklemeyin veya herkese açık statik dosya klasörü olarak sunmayın.
 
 ## Ekran görüntüleri
 

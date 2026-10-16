@@ -17,6 +17,7 @@ Telegram account, account-group, and scheduled-scenario management panel.
 - Telegram chats, folders, messages, and media in the web panel
 - Scrollable and collapsible account/scenario lists
 - Turkish and English interface with a remembered language preference
+- Persistent server-side avatar cache with request deduplication
 
 ## Installation
 
@@ -36,6 +37,8 @@ The following files are intentionally local and ignored by Git:
 `.env`, `hesaplar.json`, `senaryolar.json`, `senaryo-gruplari.json`, `dialoglar.json`, `apiler.txt`, `proxyler.txt`, and `*.session`.
 
 Keep these files on the server and create backups before updating the application. The repository contains only application code, documentation, and demo screenshots.
+
+Profile and group avatars are cached under `uploads/avatar-cache/`, which is ignored by Git. The first request downloads an image from Telegram; later requests use the local cache. Do not expose this directory as a public static folder.
 
 ## Updating an existing server
 

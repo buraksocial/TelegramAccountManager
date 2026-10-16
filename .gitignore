@@ -1,0 +1,15 @@
+node_modules/
+uploads/
+hesaplar.json
+senaryolar.json
+senaryo-gruplari.json
+dialoglar.json
+apiler.txt
+proxyler.txt
+gruplar.txt
+*.session
+*.zip
+old-bot.js
+.env
+.env.local
+.env.production

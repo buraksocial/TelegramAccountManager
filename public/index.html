@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Telegram Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
+    <link rel="stylesheet" href="style.css?v=2.1">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+</head>
+<body>
+
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-box">
+            <div class="language-switcher" aria-label="Language">
+                <button type="button" class="language-btn active" data-language="tr">Türkçe</button>
+                <button type="button" class="language-btn" data-language="en">English</button>
+            </div>
+            <div class="auth-logo">
+                <i class="uil uil-telegram-alt"></i>
+                <h2>Nexus Panel</h2>
+            </div>
+            <p class="auth-desc">Lütfen yönetici şifrenizle giriş yapın.</p>
+            <form id="auth-form">
+                <div class="input-wrapper">
+                    <i class="uil uil-lock"></i>
+                    <input type="password" id="auth-pass" required placeholder="Şifreniz">
+                </div>
+                <button type="submit" class="btn-glow mt-4">Giriş Yap</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-layout" id="main-layout" style="display: none;">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="hamburger-menu">
+                    <i class="uil uil-bars"></i>
+                </div>
+                <div class="search-box">
+                    <i class="uil uil-search"></i>
+                    <input type="text" id="sidebar-search" placeholder="Arama yap...">
+                </div>
+                <div class="language-switcher compact" aria-label="Language">
+                    <button type="button" class="language-btn active" data-language="tr">TR</button>
+                    <button type="button" class="language-btn" data-language="en">EN</button>
+                </div>
+            </div>
+
+                        <nav class="sidebar-nav">
+
+
+                <div class="chat-list" id="sidebar-main-list">
+                    <!-- Top 4 Sections as Chat Items -->
+                    <a href="#" class="nav-item chat-item active" data-target="hesap-tab">
+                        <div class="chat-avatar" style="background: #e27d60;"><i class="uil uil-users-alt"></i></div>
+                        <div class="chat-info">
+                            <span class="chat-name">Hesap Yönetimi</span>
+                            <span class="chat-last-msg">Profiller ve gruplar</span>
+                        </div>
+                    </a>
+                    <a href="#" class="nav-item chat-item" data-target="islem-tab">
+                        <div class="chat-avatar" style="background: #85cdcb;"><i class="uil uil-user-plus"></i></div>
+                        <div class="chat-info">
+                            <span class="chat-name">Toplu Katılım</span>
+                            <span class="chat-last-msg">Kanallara toplu giriş</span>
+                        </div>
+                    </a>
+                    <a href="#" class="nav-item chat-item" data-target="senaryo-tab">
+                        <div class="chat-avatar" style="background: #e8a87c;"><i class="uil uil-clock"></i></div>
+                        <div class="chat-info">
+                            <span class="chat-name">Zamanlı Senaryolar</span>
+                            <span class="chat-last-msg">Otomatik işlemler</span>
+                        </div>
+                    </a>
+                    <a href="#" class="nav-item chat-item" data-target="cikis-tab">
+                        <div class="chat-avatar" style="background: #41b3a3;"><i class="uil uil-sign-out-alt"></i></div>
+                        <div class="chat-info">
+                            <span class="chat-name">Toplu Çıkış</span>
+                            <span class="chat-last-msg">Tüm kanallardan ayrıl</span>
+                        </div>
+                    </a>
+
+                    <!-- Dinamik Olarak Hesaplar Buraya Yüklenecek -->
+                    <div id="sidebar-accounts-list">
+                        <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;">
+                            Hesaplar yükleniyor...
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item text-danger" id="logout-btn">
+                    <i class="uil uil-sign-out-alt"></i>
+                    <span>Çıkış Yap</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content-area">
+
+            <!-- Hesap Yönetimi Tab -->
+            <section id="hesap-tab" class="tab-pane active">
+                <div class="page-header" style="display:none;">
+                    <h1>Hesap Yönetimi</h1>
+                </div>
+
+                <div class="chat-container">
+                    <!-- Hesap Ekleme Kartı -->
+                    <div class="premium-card">
+                        <h3><i class="uil uil-user-plus"></i> Yeni Hesap Ekle</h3>
+                        <div class="switcher">
+                            <button class="switch-btn active" onclick="switchAddMethod('tsession')" type="button">tSession</button>
+                            <button class="switch-btn" onclick="switchAddMethod('numara')" type="button">Telefon No</button>
+                        </div>
+
+                        <!-- tSession Form -->
+                        <form id="add-tsession-form">
+                            <div class="form-group">
+                                <label>String Session (tSession)</label>
+                                <textarea id="tsession-input" rows="3" placeholder="1Bbea..."></textarea>
+                            </div>
+                            <div class="session-upload-divider"><span>veya / or</span></div>
+                            <div class="form-group session-file-group">
+                                <label for="tsession-file"><i class="uil uil-upload"></i> Session dosyası yükle</label>
+                                <input type="file" id="tsession-file" accept=".session,.txt" />
+                                <small class="input-hint">Metin formatındaki StringSession dosyaları desteklenir. SQLite/Telethon .session dosyaları doğrudan dönüştürülemez.</small>
+                            </div>
+                            <button type="submit" class="btn-primary mt-2">Sisteme Ekle</button>
+                        </form>
+
+                        <!-- Numara Form -->
+                        <form id="add-number-form" style="display: none;">
+                            <div class="form-group" id="step-phone">
+                                <label>Telefon Numarası</label>
+                                <div class="input-with-button">
+                                    <input type="text" id="phone-input" placeholder="+90 555 123 4567">
+                                    <button type="button" class="btn-secondary" onclick="requestPhoneCode()">Kod İste</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="step-code" style="display: none;">
+                                <label>Gelen SMS Kodu</label>
+                                <div class="input-with-button">
+                                    <input type="text" id="code-input" placeholder="12345">
+                                    <button type="button" class="btn-secondary" onclick="submitAuthCode()">Onayla</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="step-password" style="display: none;">
+                                <label>2FA Şifresi</label>
+                                <div class="input-with-button">
+                                    <input type="password" id="password-input">
+                                    <button type="button" class="btn-secondary" onclick="submitAuthPassword()">Gönder</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="step-name" style="display: none;">
+                                <label>Hesap İsim (Yeni Kayıt)</label>
+                                <div class="input-with-button">
+                                    <input type="text" id="name-input" placeholder="İsim Soyisim">
+                                    <button type="button" class="btn-secondary" onclick="submitAuthName()">Tamamla</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Kayıtlı Hesaplar Kartı -->
+                    <div class="premium-card">
+                        <div class="card-header-flex">
+                            <h3><i class="uil uil-users-alt"></i> Kayıtlı Hesaplar</h3>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-secondary" onclick="assignGroupToSelected()" title="Seçililere Grup Ata" style="background: rgba(255, 159, 67, 0.1); color: #ff9f43;">
+                                    <i class="uil uil-folder-plus"></i> Grup Ata
+                                </button>
+                                <button class="btn-secondary" onclick="scanSelectedAccounts()" title="Seçili Olanları Tara">
+                                    <i class="uil uil-check-square"></i> Seçilileri Tara
+                                </button>
+                                <button class="btn-primary" onclick="scanAccounts()" title="Tüm Hesapları Tara">
+                                    <i class="uil uil-sync"></i> Tümünü Tara
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-wrapper" id="hesaplar-kategori-listesi" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                            <!-- Dinamik olarak kategorilere göre tablolar oluşturulacak -->
+                        </div>
+                    </div>
+                </div> <!-- End of chat-container -->
+            </section>
+
+            <!-- Toplu Katılım Tab -->
+            <section id="islem-tab" class="tab-pane">
+                <div class="chat-container max-w-lg">
+                    <div class="premium-card">
+                        <h3><i class="uil uil-user-plus"></i> Kanallara/Gruplara Toplu Katılım</h3>
+                        <form id="islem-form">
+                            <div class="form-group">
+                                <label>Hedef Hesap Türü</label>
+                                <select id="islem-target-type" class="w-full" style="padding:10px; background:var(--bg-lighter); color:var(--text-main); border:1px solid var(--border-color); border-radius:8px;" onchange="document.getElementById('islem-target-val').style.display = this.value === 'all' ? 'none' : 'block'; populateIslemTargetVal();">
+                                    <option value="all">Tüm Hesaplar</option>
+                                    <option value="group">Belirli Hesap Grubu (Kategori)</option>
+                                    <option value="account">Belirli Bir Hesap</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="islem-target-val" style="display:none;">
+                                <label>Hedef Seçin</label>
+                                <select id="islem-target-val-select" class="w-full" style="padding:10px; background:var(--bg-lighter); color:var(--text-main); border:1px solid var(--border-color); border-radius:8px;"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Hedef Kanallar / Gruplar</label>
+                                <span class="input-hint">Her satıra bir tane link yazın (örn: t.me/ornek_kanal)</span>
+                                <textarea id="islem-gruplar" rows="8" required placeholder="t.me/ornek_kanal&#10;@ornek_grup"></textarea>
+                            </div>
+                            <button type="submit" class="btn-glow w-full mt-2">Katılım İşlemini Başlat</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Toplu Çıkış Tab -->
+            <section id="cikis-tab" class="tab-pane">
+                <div class="chat-container max-w-lg">
+                    <div class="premium-card">
+                        <h3><i class="uil uil-sign-out-alt"></i> Tüm Kanallardan/Gruplardan Çıkış</h3>
+                        <form id="cikis-form">
+                            <div class="form-group">
+                                <label>Hedef Hesap Türü</label>
+                                <select id="cikis-target-type" class="w-full" style="padding:10px; background:var(--bg-lighter); color:var(--text-main); border:1px solid var(--border-color); border-radius:8px;" onchange="document.getElementById('cikis-target-val').style.display = this.value === 'all' ? 'none' : 'block'; populateCikisTargetVal();">
+                                    <option value="all">Tüm Hesaplar</option>
+                                    <option value="group">Belirli Hesap Grubu (Kategori)</option>
+                                    <option value="account">Belirli Bir Hesap</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="cikis-target-val" style="display:none;">
+                                <label>Hedef Seçin</label>
+                                <select id="cikis-target-val-select" class="w-full" style="padding:10px; background:var(--bg-lighter); color:var(--text-main); border:1px solid var(--border-color); border-radius:8px;"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Çıkılacak Kanallar / Gruplar</label>
+                                <span class="input-hint">Özel linkler yazarak sadece onlardan çıkabilirsiniz (Boş bırakırsanız TÜM HER YERDEN ÇIKAR)</span>
+                                <textarea id="cikis-gruplar" rows="5" placeholder="Boş bırakırsanız tüm gruplardan/kanallardan çıkış yapılır.&#10;Belirli kanallar için her satıra bir link yazın."></textarea>
+                            </div>
+                            <div class="form-group" style="display:flex; align-items:center; gap:10px; background:rgba(255,100,100,0.1); padding:10px; border-radius:8px; border:1px solid rgba(255,100,100,0.3);">
+                                <input type="checkbox" id="cikis-confirm" required>
+                                <label for="cikis-confirm" style="color:#ff6b6b; font-size:13px; margin:0;">Onaylıyorum, seçilen hesaplardaki sohbetlerden çıkılacak. Geri dönüşü yoktur!</label>
+                            </div>
+                            <button type="submit" class="btn-glow w-full mt-2" style="background:var(--danger); box-shadow:0 0 15px rgba(255,71,87,0.4);">Çıkış İşlemini Başlat</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Senaryo Tab -->
+            <section id="senaryo-tab" class="tab-pane">
+                <div class="chat-container">
+                    <div class="grid-2">
+                    <div class="premium-card">
+                        <h3><i class="uil uil-plus-circle"></i> Yeni Senaryo Ekle</h3>
+                        <form id="senaryo-form">
+                            <div class="form-row">
+                                <div class="form-group w-50">
+                                    <label>Saat (HH:MM)</label>
+                                    <input type="time" id="s-saat" required>
+                                </div>
+                                <div class="form-group w-50">
+                                    <label>Hedef Türü</label>
+                                    <div class="select-wrapper">
+                                        <select id="s-target-type" required onchange="populateScenarioTargetVal()">
+                                            <option value="account">Belirli Hesap</option>
+                                            <option value="group">Hesap Grubu</option>
+                                        </select>
+                                        <i class="uil uil-angle-down"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label id="s-target-label">Kullanılacak Hesap</label>
+                                <div class="select-wrapper">
+                                    <select id="s-hesap" required></select>
+                                    <i class="uil uil-angle-down"></i>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Hedef Grup / Kanal Linki veya ID</label>
+                                <select id="s-grup" required></select>
+                                <div id="s-grup-quick" class="saved-targets" aria-label="Kayıtlı hedefler"></div>
+                                <span class="input-hint">Kayıtlı hedeflerden birini seçin veya arama alanına yeni bir link/@kullanıcı adı yazın.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Yorum Yapılacak Mesaj ID (Opsiyonel)</label>
+                                <input type="number" id="s-yorum-id" placeholder="Kanal gönderisinin ID'si">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Gönderilecek Mesaj</label>
+                                <textarea id="s-mesaj" rows="4" required placeholder="Mesajınızı buraya yazın..."></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary w-full mt-2">Plana Ekle</button>
+                        </form>
+                    </div>
+
+                    <div class="premium-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                            <h3 style="margin:0;"><i class="uil uil-list-ul"></i> Kayıtlı Senaryolar</h3>
+                            <div class="scenario-filters" style="display:flex; gap:5px;">
+                                <button type="button" class="btn-secondary btn-sm" onclick="setScenarioFilter('hesap')" id="btn-filter-hesap" style="background:var(--primary); color:white;">Hesaba Göre</button>
+                                <button type="button" class="btn-secondary btn-sm" onclick="setScenarioFilter('hedef')" id="btn-filter-hedef">Hedefe Göre</button>
+                                <button type="button" class="btn-secondary btn-sm" onclick="setScenarioFilter('saat')" id="btn-filter-saat">Saate Göre</button>
+                            </div>
+                        </div>
+                        <div class="scenario-collections">
+                            <div class="collection-toolbar">
+                                <select id="scenario-collection-select" aria-label="Senaryo koleksiyonu">
+                                    <option value="">Senaryo koleksiyonu seçin...</option>
+                                </select>
+                                <button type="button" class="btn-secondary btn-sm" onclick="createScenarioCollection()"><i class="uil uil-folder-plus"></i> Seçilileri kaydet</button>
+                                <button type="button" class="btn-secondary btn-sm" onclick="applyScenarioCollection()"><i class="uil uil-copy"></i> Hesap grubuna uygula</button>
+                            </div>
+                            <div id="scenario-collections-list" class="collection-list"></div>
+                        </div>
+                        <div id="senaryolar-liste" class="senaryolar-listesi" style="display:flex; flex-direction:column; gap:10px;">
+                            <!-- Dinamik olarak kategorilere ayrılmış senaryolar gelecek -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Anlık Mesaj Tab -->
+            <section id="mesaj-tab" class="tab-pane">
+                <div class="chat-container max-w-lg">
+                    <div class="chat-message">
+                    <form id="mesaj-form">
+                        <div class="form-group">
+                            <label>Gönderici Hesap</label>
+                            <div class="select-wrapper">
+                                <select id="m-hesap" required></select>
+                                <i class="uil uil-angle-down"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Hedef Grup veya Kanal</label>
+                            <div class="select-wrapper">
+                                <select id="m-grup" required></select>
+                                <i class="uil uil-angle-down"></i>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-wrapper mt-3 mb-3">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="m-is-discussion">
+                                <span class="checkmark"></span>
+                                <span class="cb-text">Bu bir kanal gönderisine yoruma eklenecek</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group" id="m-reply-group">
+                            <label>Yanıtlanacak Mesaj ID</label>
+                            <input type="number" id="m-reply-id" placeholder="Örn: 1245">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Mesaj İçeriği</label>
+                            <textarea id="m-mesaj" rows="4" required placeholder="İletilecek mesaj..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-glow w-full mt-2">Hemen Gönder</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Toplu Çıkış Tab -->
+            <section id="cikis-tab" class="tab-pane">
+                <div class="chat-container max-w-lg">
+                    <div class="chat-message">
+                    <form id="cikis-form">
+                        <div class="form-group">
+                            <label>Kullanılacak Hesap(lar) veya Grup</label>
+                            <div class="select-wrapper">
+                                <select id="cikis-hesap" required></select>
+                                <i class="uil uil-angle-down"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Hedef Grup / Kanal</label>
+                            <span class="input-hint">Tüm gruplardan çıkmak için 'Tüm Gruplar/Kanallar' seçin.</span>
+                            <div class="select-wrapper">
+                                <select id="cikis-hedef" required>
+                                    <option value="all">Tüm Gruplar/Kanallar (all)</option>
+                                    <!-- app.js'den dinamik yüklenecek -->
+                                </select>
+                                <i class="uil uil-angle-down"></i>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-danger w-full mt-2" style="background: var(--danger);">Çıkış İşlemini Başlat</button>
+                    </form>
+                    </div>
+                </div>
+            </section>
+            <!-- Telegram Web Arayüzü (Hesaba Tıklandığında Açılır) -->
+            <section id="telegram-web-tab" class="tab-pane" style="max-width: 100%; padding:0; height:100%;">
+                <div class="telegram-view">
+                    <!-- İkinci Sidebar (Dialogs) -->
+                    <div class="tg-sidebar" id="tg-dialogs-sidebar">
+                        <div class="tg-sidebar-header" style="display:flex; gap:10px; align-items:center;">
+                            <i class="uil uil-arrow-left" style="font-size:20px; cursor:pointer;" id="tg-back-btn"></i>
+                            <input type="text" id="tg-dialog-search" placeholder="Search chats..." style="flex:1; background:var(--bg-input); border:none; padding:8px 15px; border-radius:20px; color:white; outline:none;">
+                            <i class="uil uil-edit" style="font-size:20px; cursor:pointer; color:var(--primary);" id="tg-new-chat-btn" title="Yeni Sohbet Başlat"></i>
+                        </div>
+                        <div class="tg-folder-tabs" id="tg-folder-tabs" style="display:none;">
+                            <!-- Tabs will be rendered here -->
+                        </div>
+                        <div class="tg-archived-btn" id="tg-archived-btn" style="display:none;">
+                            <div class="tg-archived-icon"><i class="uil uil-archive"></i></div>
+                            <div class="tg-archived-text">Archived Chats</div>
+                        </div>
+                        <div class="tg-chat-list" id="tg-dialogs-list">
+                            <div style="padding:20px; text-align:center; color:var(--text-muted);">Sohbetler yükleniyor...</div>
+                        </div>
+                    </div>
+
+                    <!-- Sağ Taraf (Messages) -->
+                    <div class="tg-main" id="tg-messages-area" style="display:none;">
+                        <div class="tg-main-header">
+                            <div class="chat-avatar" id="tg-active-avatar" style="width:40px;height:40px;margin-right:15px;"></div>
+                            <div>
+                                <h3 id="tg-active-title">Sohbet Adı</h3>
+                                <span id="tg-active-status">Son görülme yakınlarda</span>
+                            </div>
+                        </div>
+                        <div id="tg-pinned-bar" style="display:none; padding:10px 20px; background:rgba(255,255,255,0.02); border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                            <div style="border-left:3px solid var(--primary); padding-left:10px;">
+                                <div style="color:var(--primary); font-size:13px; font-weight:600;">Pinned Message</div>
+                                <div id="tg-pinned-text" style="color:var(--text-muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+                            </div>
+                        </div>
+
+                        <div class="tg-messages" id="tg-messages-list">
+                            <!-- Mesajlar buraya gelecek -->
+                        </div>
+
+                        <!-- Reply Bar -->
+                        <div id="tg-reply-bar" style="display:none; padding:10px 15px; background:rgba(255,255,255,0.05); border-left:3px solid var(--primary); display:none; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span style="color:var(--primary); font-size:13px; font-weight:600;">Reply to</span>
+                                <span id="tg-reply-text" style="color:var(--text-muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:400px;">Mesaj metni</span>
+                            </div>
+                            <i class="uil uil-times" id="tg-cancel-reply" style="color:var(--text-muted); cursor:pointer; font-size:18px;"></i>
+                        </div>
+
+                        <div class="tg-input-area">
+                            <i class="uil uil-paperclip" id="tg-attachment-btn" style="font-size:22px; color:var(--text-muted); cursor:pointer;"></i>
+                            <input type="file" id="tg-file-input" style="display:none;">
+                            <input type="text" id="tg-message-input" placeholder="Mesaj yazın...">
+                            <button id="tg-send-btn"><i class="uil uil-telegram-alt"></i></button>
+                        </div>
+                    </div>
+                    <!-- Sağ Taraf Boş Durum -->
+                    <div class="tg-main" id="tg-empty-area" style="justify-content:center; align-items:center;">
+                        <div style="background:rgba(23, 33, 43, 0.7); padding:10px 20px; border-radius:20px; color:white;">
+                            Select a chat to start messaging
+                        </div>
+                    </div>
+                    <!-- Sağ Panel (User Info) -->
+                    <div class="tg-right-panel" id="tg-right-panel" style="display:none;">
+                        <div class="panel-header" style="padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); color:white;">
+                            <i class="uil uil-times" id="close-right-panel" style="cursor:pointer; font-size:24px; color:var(--text-muted);"></i>
+                            <h3 style="margin:0; font-size:18px;">Profile</h3>
+                            <div style="position:relative;">
+                                <i class="uil uil-ellipsis-v" id="profile-menu-btn" style="cursor:pointer; font-size:20px; padding:5px;"></i>
+                                <div class="context-menu" id="profile-context-menu" style="display:none; position:absolute; right:0; top:30px; width:200px; z-index:1000;">
+                                    <div class="menu-item"><i class="uil uil-clock"></i> Auto-delete </div>
+                                    <div class="menu-item"><i class="uil uil-bell-slash"></i> Mute </div>
+                                    <div class="menu-item"><i class="uil uil-check-circle"></i> Select Messages </div>
+                                    <div class="menu-item"><i class="uil uil-user-plus"></i> Add to contacts </div>
+                                    <div class="menu-item"><i class="uil uil-gift"></i> Send a Gift </div>
+                                    <div class="menu-item" style="color:var(--danger);"><i class="uil uil-ban"></i> Block user </div>
+                                    <div class="menu-item"><i class="uil uil-share-alt"></i> Disable Sharing </div>
+                                    <div class="menu-item"><i class="uil uil-history"></i> Clear history </div>
+                                    <div class="menu-item" style="color:var(--danger);"><i class="uil uil-trash-alt"></i> Delete Chat </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-content" id="tg-profile-content" style="padding:20px; text-align:center; overflow-y:auto; flex:1;">
+                            <!-- Profile details will load here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="i18n.js?v=1.0"></script>
+    <script src="app.js?v=9.0"></script>
+    <!-- Context Menus -->
+    <div id="msg-context-menu" class="tg-context-menu" style="display:none; position:absolute; z-index:1000;">
+        <div class="menu-item" data-action="reply"><i class="uil uil-corner-up-left"></i> Reply</div>
+        <div class="menu-item" data-action="copy"><i class="uil uil-copy"></i> Copy</div>
+                <div class="menu-item" data-action="pin"><i class="uil uil-thumbtack"></i> Pin</div>
+        <div class="menu-item" data-action="forward"><i class="uil uil-message"></i> Forward</div>
+        <div class="menu-item text-danger" data-action="delete"><i class="uil uil-trash-alt"></i> Delete</div>
+    </div>
+
+    <div id="chat-context-menu" class="tg-context-menu" style="display:none; position:absolute; z-index:1000;">
+        <div class="menu-item" data-action="archive"><i class="uil uil-archive"></i> Archive</div>
+        <div class="menu-item" data-action="unarchive"><i class="uil uil-archive"></i> Unarchive</div>
+        <div class="menu-item text-danger" data-action="clear"><i class="uil uil-history"></i> Clear history</div>
+        <div class="menu-item text-danger" data-action="delete_chat"><i class="uil uil-trash"></i> Delete Chat</div>
+    </div>
+
+
+    <div id="tg-forward-modal" class="tg-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+        <div class="tg-modal-content" style="background:var(--bg-main); width:400px; border-radius:10px; padding:20px; color:white; max-height:80vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; font-weight:500;">Forward to...</h3>
+                <i class="uil uil-times" id="close-forward-modal" style="cursor:pointer; font-size:20px;"></i>
+            </div>
+            <input type="text" id="forward-search" placeholder="Search chats..." style="background:var(--bg-input); border:none; padding:10px 15px; border-radius:10px; color:white; outline:none; margin-bottom:15px;">
+            <div id="forward-dialogs-list" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:5px;">
+                <!-- Chat list for forwarding goes here -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>

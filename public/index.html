@@ -327,6 +327,10 @@
                                 </select>
                                 <button type="button" class="btn-secondary btn-sm" onclick="createScenarioCollection()"><i class="uil uil-folder-plus"></i> Seçilileri kaydet</button>
                                 <button type="button" class="btn-secondary btn-sm" onclick="applyScenarioCollection()"><i class="uil uil-copy"></i> Hesap grubuna uygula</button>
+                                <select id="scenario-copy-target" aria-label="Senaryoların kopyalanacağı hedef" style="min-width:190px;">
+                                    <option value="">Kopyalama hedefi seçin...</option>
+                                </select>
+                                <button type="button" class="btn-secondary btn-sm" onclick="copyScenarioCollection()"><i class="uil uil-copy"></i> Hedef gruba kopyala</button>
                             </div>
                             <div id="scenario-collections-list" class="collection-list"></div>
                         </div>

@@ -255,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sGrup = document.getElementById('s-grup');
             const mGrup = document.getElementById('m-grup');
             const cHedef = document.getElementById('cikis-hedef');
+            const scenarioCopyTarget = document.getElementById('scenario-copy-target');
 
             let html = '<option value="" disabled selected>Grup/Kanal Seçin veya Link/Nick Girin...</option>';
             let cHtml = '<option value="all">Tüm Gruplar/Kanallar (all)</option>';
@@ -279,6 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (mGrup) { mGrup.innerHTML = html; $(mGrup).select2({ width: '100%', theme: 'default', tags: true }); }
             if (cHedef) { cHedef.innerHTML = cHtml; $(cHedef).select2({ width: '100%', theme: 'default', tags: true }); }
+            if (scenarioCopyTarget) {
+                scenarioCopyTarget.innerHTML = '<option value="">Kopyalama hedefi seçin...</option>' + groups.map(g => `<option value="${escapeHTML(g.id)}">${escapeHTML(g.title)}</option>`).join('');
+                if ($(scenarioCopyTarget).hasClass('select2-hidden-accessible')) $(scenarioCopyTarget).select2('destroy');
+                $(scenarioCopyTarget).select2({ width: '190px', theme: 'default', tags: true, placeholder: 'Kopyalama hedefi...' });
+            }
         } catch (e) { }
     }
 
@@ -386,6 +392,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await apiFetch(`${API_BASE}/senaryo-gruplari/${collectionId}/uygula`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hesapGrup }) });
         const data = await res.json();
         if (data.success) { alert(`${data.count} senaryo hesap grubuna kopyalandı.`); loadScenarios(); }
+        else alert('Hata: ' + data.error);
+    };
+
+    window.copyScenarioCollection = async () => {
+        const collectionId = document.getElementById('scenario-collection-select')?.value;
+        const hedefId = document.getElementById('scenario-copy-target')?.value?.trim();
+        if (!collectionId) return alert('Önce bir senaryo koleksiyonu seçin.');
+        if (!hedefId) return alert('Önce kopyalama hedefini seçin veya yazın.');
+        const res = await apiFetch(`${API_BASE}/senaryo-gruplari/${collectionId}/kopyala`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hedefId }) });
+        const data = await res.json();
+        if (data.success) { alert(`${data.count} senaryo hedef gruba kopyalandı.`); loadScenarios(); }
         else alert('Hata: ' + data.error);
     };
 

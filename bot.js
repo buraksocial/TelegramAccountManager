@@ -1357,6 +1357,17 @@ const avatarCache = createAvatarCache({
 // İstemcileri önbelleğe alıp Socket.io ile entegre ediyoruz
 const activeClients = {};
 const clientRequests = new Map();
+let clientGeneration = 0;
+
+async function invalidateCachedClients() {
+    clientGeneration++;
+    const clients = Object.values(activeClients);
+    Object.keys(activeClients).forEach(key => delete activeClients[key]);
+    clientRequests.clear();
+    await Promise.all(clients.map(async client => {
+        try { await client.disconnect(); } catch (_) { /* already disconnected */ }
+    }));
+}
 
 async function getCachedClient(indeks) {
     if (activeClients[indeks]) return activeClients[indeks];
@@ -1370,8 +1381,13 @@ async function createCachedClient(indeks) {
     if (activeClients[indeks]) {
         return activeClients[indeks];
     }
+    const generation = clientGeneration;
     const client = await hesapClientOlustur(indeks);
     if (client) {
+        if (generation !== clientGeneration) {
+            await client.disconnect().catch(() => {});
+            return client;
+        }
         activeClients[indeks] = client;
 
         // Yeni mesaj dinleyicisi
@@ -1490,13 +1506,17 @@ app.get('/api/hesaplar', (req, res) => {
     res.json(hesaplar);
 });
 
-app.delete('/api/hesaplar/:indeks', (req, res) => {
+app.delete('/api/hesaplar/:indeks', async (req, res) => {
     const indeks = parseInt(req.params.indeks);
     let hesaplar = hesaplariGetir();
 
     if (indeks >= 0 && indeks < hesaplar.length) {
         const silinecekHesap = hesaplar[indeks];
         const hesapId = silinecekHesap.id;
+
+        // İndeksler silme sonrası kayacağı için eski istemcilerin yeni hesaba
+        // bağlanmasını engelle. Yeni istekler hesaplar.json'dan yeniden bağlanır.
+        await invalidateCachedClients();
 
         // Hesaplardan sil
         hesaplar.splice(indeks, 1);
@@ -1754,6 +1774,28 @@ app.post('/api/senaryo-gruplari/:id/uygula', (req, res) => {
     res.json({ success: true, count: kopyalar.length });
 });
 
+// Bir koleksiyondaki senaryoları yeni hedefe kopyalar; kaynak senaryoların
+// hesap atamalarını (tek hesap veya hesap grubu) ve mesaj ayarlarını korur.
+app.post('/api/senaryo-gruplari/:id/kopyala', (req, res) => {
+    const hedefId = String(req.body.hedefId || '').trim();
+    const grup = senaryoGruplariGetir().find(g => g.id === req.params.id);
+    if (!grup || !hedefId) return res.status(400).json({ success: false, error: 'Koleksiyon veya hedef grup eksik.' });
+
+    const kaynaklar = new Set((grup.senaryoIds || []).map(String));
+    const senaryolar = senaryolariGetir();
+    const kopyalar = senaryolar.filter(s => kaynaklar.has(String(s.id))).map(s => ({
+        ...s,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        grupId: parseTargetId(hedefId),
+        kanalId: undefined,
+        aktif: true
+    }));
+    kopyalar.forEach(s => { delete s.kanalId; });
+    senaryolar.push(...kopyalar);
+    senaryolariKaydet(senaryolar);
+    res.json({ success: true, count: kopyalar.length });
+});
+
 app.delete('/api/senaryo-gruplari/:id', (req, res) => {
     senaryoGruplariKaydet(senaryoGruplariGetir().filter(g => g.id !== req.params.id));
     res.json({ success: true });
@@ -1994,7 +2036,9 @@ app.get('/api/telegram/:indeks/avatar/:peerId', async (req, res) => {
     const indeks = Number(req.params.indeks);
     const peerId = req.params.peerId;
     // Private: neither the CDN nor a shared proxy should cache account photos.
-    res.set('Cache-Control', 'private, max-age=3600');
+    // Account indices can change after deletion. Do not let the browser keep
+    // an old account's photo under the same index URL.
+    res.set('Cache-Control', 'no-store');
     try {
         const accounts = hesaplariGetir();
         if (!Number.isInteger(indeks) || indeks < 0 || !accounts[indeks]) {
